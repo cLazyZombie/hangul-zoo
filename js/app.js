@@ -19,6 +19,8 @@ let progress = loadProgress();  // { [이름]: { correct, wrong } }
 let current = null;             // { animal, chars, filledCount }
 let lastName = null;
 let koVoice = null;
+let currentAudio = null;
+const audioByText = new Map();
 let quizMode = 'all';           // 'all': 전체 출제, 'single': 도감에서 고른 동물만 연습
 
 /* ---------- 진행 기록 (localStorage) ---------- */
@@ -54,7 +56,7 @@ function updateProgressLabels() {
   document.getElementById('collection-progress').textContent = label;
 }
 
-/* ---------- TTS (Web Speech API) ---------- */
+/* ---------- 음성 출력 (Edge TTS 오디오 + Web Speech API 폴백) ---------- */
 
 // 여성 목소리 우선 순위 (iPad 등에서 알파벳순 첫 음성이 남성(Eddy)인 문제 대응)
 const PREFERRED_FEMALE_VOICES = ['yuna', '유나', 'sora', '소라', 'sunhi', 'heami', 'google 한국', 'flo', 'sandy', 'shelley'];
@@ -74,15 +76,75 @@ function pickKoreanVoice() {
     || voices[0];
 }
 
-function speak(text) {
+function stemOfImagePath(imagePath) {
+  return imagePath.split('/').pop().replace(/\.[^.]+$/, '');
+}
+
+function registerPrebuiltAudio(audioMap) {
+  audioByText.clear();
+  if (audioMap) {
+    Object.entries(audioMap).forEach(([text, audioPath]) => audioByText.set(text, audioPath));
+    return;
+  }
+  animals.forEach((animal) => {
+    const stem = stemOfImagePath(animal.image);
+    audioByText.set(animal.name, animal.audio || `audio/words/${stem}.mp3`);
+    audioByText.set(`${animal.name}! 참 잘했어요!`, `audio/praise/${stem}.mp3`);
+  });
+}
+
+async function loadPrebuiltAudioMap() {
+  try {
+    const res = await fetch('audio/audio-map.json');
+    if (!res.ok) throw new Error(`audio map HTTP ${res.status}`);
+    registerPrebuiltAudio(await res.json());
+  } catch {
+    registerPrebuiltAudio(null);
+  }
+}
+
+function cancelSpeech() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.removeAttribute('src');
+    currentAudio.load();
+    currentAudio = null;
+  }
+  window.speechSynthesis?.cancel();
+}
+
+function speakWithBrowser(text) {
   if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
+  window.speechSynthesis?.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ko-KR';
   if (koVoice) utter.voice = koVoice;
   utter.rate = 0.85;
   utter.pitch = 1.1;
   window.speechSynthesis.speak(utter);
+}
+
+function speak(text) {
+  cancelSpeech();
+  const audioPath = audioByText.get(text);
+  if (!audioPath) {
+    speakWithBrowser(text);
+    return;
+  }
+
+  const audio = new Audio(audioPath);
+  currentAudio = audio;
+  audio.addEventListener('ended', () => {
+    if (currentAudio === audio) currentAudio = null;
+  }, { once: true });
+  audio.addEventListener('error', () => {
+    if (currentAudio === audio) currentAudio = null;
+    speakWithBrowser(text);
+  }, { once: true });
+  audio.play().catch(() => {
+    if (currentAudio === audio) currentAudio = null;
+    speakWithBrowser(text);
+  });
 }
 
 /* ---------- 출제 ---------- */
@@ -506,6 +568,7 @@ async function init() {
   try {
     const res = await fetch('animals.json');
     animals = await res.json();
+    await loadPrebuiltAudioMap();
   } catch (err) {
     document.querySelector('.subtitle').textContent = '동물 데이터를 불러오지 못했어요 😢 (서버로 열어 주세요)';
     console.error('animals.json 로드 실패:', err);
@@ -541,7 +604,7 @@ async function init() {
   });
 
   document.getElementById('btn-home').addEventListener('click', () => {
-    window.speechSynthesis?.cancel();
+    cancelSpeech();
     clearTimeout(hintTimer);
     cleanupDrag();
     quizMode = 'all';
@@ -556,7 +619,7 @@ async function init() {
   });
 
   const exitToCollection = () => {
-    window.speechSynthesis?.cancel();
+    cancelSpeech();
     clearTimeout(hintTimer);
     cleanupDrag();
     quizMode = 'all';

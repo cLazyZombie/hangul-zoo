@@ -20,7 +20,8 @@
 
 - 순수 HTML/CSS/JavaScript — 빌드 도구 없음
 - [HTML Drag and Drop API](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API) (데스크톱) + 터치 이벤트 폴백 (모바일)
-- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) — 한국어 TTS
+- Edge TTS로 미리 생성한 한국어 MP3 — 동물 이름, 글자 타일, 칭찬 문구 재생
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) — MP3가 없을 때 한국어 TTS 폴백
 - `localStorage` — 동물별 맞춤/틀림 기록 저장 (틀린 동물을 더 자주 출제)
 
 ## 동물 추가하기
@@ -41,6 +42,15 @@
 ```bash
 python3 -m http.server 8000
 # http://localhost:8000 접속
+```
+
+## 음성 다시 만들기
+
+Edge TTS의 한국어 여성 음성(`ko-KR-SunHiNeural`)으로 `audio/`의 MP3를 다시 생성할 수 있습니다. 동물 이름, 글자 타일용 음절, 칭찬 문구가 함께 생성됩니다. 실행 시 인터넷 연결과 `edge-tts` 패키지가 필요합니다.
+
+```bash
+python3 -m pip install edge-tts
+python3 tools/generate_edge_tts_audio.py --force
 ```
 
 ## 이미지 출처
