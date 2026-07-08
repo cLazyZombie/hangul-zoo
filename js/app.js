@@ -23,6 +23,7 @@ let currentAudio = null;
 let currentUtterance = null;
 let speechBusy = false;
 let queuedSpeech = null;
+let introSpeechTimer = null;
 const audioByText = new Map();
 let quizMode = 'all';           // 'all': 전체 출제, 'single': 도감에서 고른 동물만 연습
 
@@ -106,7 +107,15 @@ async function loadPrebuiltAudioMap() {
   }
 }
 
+function clearIntroSpeechTimer() {
+  if (introSpeechTimer) {
+    clearTimeout(introSpeechTimer);
+    introSpeechTimer = null;
+  }
+}
+
 function cancelSpeech() {
+  clearIntroSpeechTimer();
   queuedSpeech = null;
   if (currentAudio) {
     currentAudio.pause();
@@ -151,12 +160,12 @@ function speakWithBrowser(text) {
 
 function speak(text, options = {}) {
   if (speechBusy) {
-    if (options.interrupt) {
-      cancelSpeech();
-    } else {
-      if (options.queue) queuedSpeech = text;
+    if (options.queue) {
+      queuedSpeech = text;
       return false;
     }
+    if (options.interrupt === false) return false;
+    cancelSpeech();
   }
 
   speechBusy = true;
@@ -319,7 +328,10 @@ function startQuestion(animal) {
   document.getElementById('praise').classList.add('hidden');
 
   // 글을 아직 못 읽는 아이를 위해 새 문제는 한 번 읽어 준다
-  setTimeout(() => speak(animal.name), 500);
+  introSpeechTimer = setTimeout(() => {
+    introSpeechTimer = null;
+    if (current?.animal === animal) speak(animal.name, { interrupt: false });
+  }, 500);
 }
 
 function nextQuestion() {
