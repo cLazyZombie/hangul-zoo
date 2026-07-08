@@ -20,6 +20,9 @@ let current = null;             // { animal, chars, filledCount }
 let lastName = null;
 let koVoice = null;
 let currentAudio = null;
+let currentUtterance = null;
+let speechBusy = false;
+let queuedSpeech = null;
 const audioByText = new Map();
 let quizMode = 'all';           // 'all': 전체 출제, 'single': 도감에서 고른 동물만 연습
 
@@ -104,47 +107,83 @@ async function loadPrebuiltAudioMap() {
 }
 
 function cancelSpeech() {
+  queuedSpeech = null;
   if (currentAudio) {
     currentAudio.pause();
     currentAudio.removeAttribute('src');
     currentAudio.load();
     currentAudio = null;
   }
+  currentUtterance = null;
+  speechBusy = false;
   window.speechSynthesis?.cancel();
 }
 
+function finishSpeech() {
+  currentAudio = null;
+  currentUtterance = null;
+  speechBusy = false;
+
+  const next = queuedSpeech;
+  queuedSpeech = null;
+  if (next) speak(next);
+}
+
 function speakWithBrowser(text) {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis?.cancel();
+  if (!('speechSynthesis' in window)) {
+    finishSpeech();
+    return;
+  }
   const utter = new SpeechSynthesisUtterance(text);
+  currentUtterance = utter;
   utter.lang = 'ko-KR';
   if (koVoice) utter.voice = koVoice;
   utter.rate = 0.85;
   utter.pitch = 1.1;
+  utter.addEventListener('end', () => {
+    if (currentUtterance === utter) finishSpeech();
+  }, { once: true });
+  utter.addEventListener('error', () => {
+    if (currentUtterance === utter) finishSpeech();
+  }, { once: true });
   window.speechSynthesis.speak(utter);
 }
 
-function speak(text) {
-  cancelSpeech();
+function speak(text, options = {}) {
+  if (speechBusy) {
+    if (options.interrupt) {
+      cancelSpeech();
+    } else {
+      if (options.queue) queuedSpeech = text;
+      return false;
+    }
+  }
+
+  speechBusy = true;
   const audioPath = audioByText.get(text);
   if (!audioPath) {
     speakWithBrowser(text);
-    return;
+    return true;
   }
 
   const audio = new Audio(audioPath);
   currentAudio = audio;
   audio.addEventListener('ended', () => {
-    if (currentAudio === audio) currentAudio = null;
+    if (currentAudio === audio) finishSpeech();
   }, { once: true });
   audio.addEventListener('error', () => {
-    if (currentAudio === audio) currentAudio = null;
-    speakWithBrowser(text);
+    if (currentAudio === audio) {
+      currentAudio = null;
+      speakWithBrowser(text);
+    }
   }, { once: true });
   audio.play().catch(() => {
-    if (currentAudio === audio) currentAudio = null;
-    speakWithBrowser(text);
+    if (currentAudio === audio) {
+      currentAudio = null;
+      speakWithBrowser(text);
+    }
   });
+  return true;
 }
 
 /* ---------- 출제 ---------- */
@@ -236,6 +275,7 @@ function cleanupDrag() {
 }
 
 function startQuestion(animal) {
+  cancelSpeech();
   current = { animal, chars: Array.from(animal.name), filledCount: 0 };
   lastName = animal.name;
   applyModeUI();
@@ -453,7 +493,7 @@ function completeWord() {
   document.getElementById('praise').classList.remove('hidden');
   launchConfetti();
   // 완성된 단어를 TTS로 다시 한 번 읽어 준다
-  setTimeout(() => speak(`${name}! 참 잘했어요!`), 400);
+  setTimeout(() => speak(`${name}! 참 잘했어요!`, { queue: true }), 400);
 }
 
 /* ---------- 씬 전환 ---------- */

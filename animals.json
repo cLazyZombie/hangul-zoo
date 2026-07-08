@@ -36,6 +36,22 @@
     "image": "images/chimpanzee.png"
   },
   {
+    "name": "맨드릴원숭이",
+    "image": "images/mandrill-monkey.png"
+  },
+  {
+    "name": "고함원숭이",
+    "image": "images/howler-monkey.png"
+  },
+  {
+    "name": "긴팔원숭이",
+    "image": "images/gibbon.png"
+  },
+  {
+    "name": "황금머리타마린",
+    "image": "images/golden-headed-tamarin.png"
+  },
+  {
     "name": "늑대",
     "image": "images/wolf.png"
   },
@@ -50,6 +66,10 @@
   {
     "name": "호랑이",
     "image": "images/tiger.png"
+  },
+  {
+    "name": "시베리아호랑이",
+    "image": "images/siberian-tiger.png"
   },
   {
     "name": "표범",
@@ -192,6 +212,10 @@
     "image": "images/meerkat.png"
   },
   {
+    "name": "큰개미핥기",
+    "image": "images/giant-anteater.png"
+  },
+  {
     "name": "칠면조",
     "image": "images/turkey.png"
   },
@@ -212,6 +236,10 @@
     "image": "images/penguin.png"
   },
   {
+    "name": "퍼핀",
+    "image": "images/puffin.png"
+  },
+  {
     "name": "비둘기",
     "image": "images/dove.png"
   },
@@ -222,6 +250,10 @@
   {
     "name": "오리",
     "image": "images/duck.png"
+  },
+  {
+    "name": "원앙오리",
+    "image": "images/mandarin-duck.png"
   },
   {
     "name": "거위",
@@ -256,12 +288,20 @@
     "image": "images/parrot.png"
   },
   {
+    "name": "갈라코카투",
+    "image": "images/galah-cockatoo.png"
+  },
+  {
     "name": "토코투칸",
     "image": "images/toco-toucan.png"
   },
   {
     "name": "타조",
     "image": "images/ostrich.png"
+  },
+  {
+    "name": "화식조",
+    "image": "images/cassowary.png"
   },
   {
     "name": "두루미",
@@ -306,6 +346,10 @@
   {
     "name": "도마뱀",
     "image": "images/lizard.png"
+  },
+  {
+    "name": "이구아나",
+    "image": "images/iguana.png"
   },
   {
     "name": "뱀",
@@ -356,6 +400,10 @@
     "image": "images/crab.png"
   },
   {
+    "name": "투구게",
+    "image": "images/horseshoe-crab.png"
+  },
+  {
     "name": "새우",
     "image": "images/shrimp.png"
   },
@@ -368,8 +416,24 @@
     "image": "images/lobster.png"
   },
   {
+    "name": "조개",
+    "image": "images/clam.png"
+  },
+  {
     "name": "물고기",
     "image": "images/fish.png"
+  },
+  {
+    "name": "돛새치",
+    "image": "images/sailfish.png"
+  },
+  {
+    "name": "연어",
+    "image": "images/salmon.png"
+  },
+  {
+    "name": "실러캔스",
+    "image": "images/coelacanth.png"
   },
   {
     "name": "개복치",
@@ -420,12 +484,20 @@
     "image": "images/ladybug.png"
   },
   {
+    "name": "비단벌레",
+    "image": "images/jewel-beetle.png"
+  },
+  {
     "name": "잠자리",
     "image": "images/dragonfly.png"
   },
   {
     "name": "메뚜기",
     "image": "images/grasshopper.png"
+  },
+  {
+    "name": "난초사마귀",
+    "image": "images/orchid-mantis.png"
   },
   {
     "name": "거미",
