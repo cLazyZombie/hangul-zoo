@@ -9,14 +9,14 @@
 - `js/app.js`는 게임 상태, 드래그 앤 드롭, 터치 입력, 음성 출력, 진행 기록, 화면 전환을 처리합니다.
 - `animals.json`은 동물 데이터 원본입니다. 항목은 `{ "name": "...", "image": "images/file.png" }` 형식을 사용합니다.
 - `images/`에는 `animals.json` 항목과 대응되는 정사각형 동물 이미지를 둡니다.
-- `audio/`에는 Edge TTS로 미리 생성한 동물 이름, 글자 타일용 음절, 칭찬 문구 MP3를 둡니다.
+- `audio/`에는 Edge TTS로 미리 생성한 동물 이름, 글자 타일용 음절, 자모 조각 발음, 칭찬 문구 MP3를 둡니다.
 - `tools/`에는 개발용 생성 스크립트를 둡니다.
 
 ## 실행, 점검, 개발 명령
 
 - `python3 -m http.server 8000`: 현재 폴더를 정적 서버로 엽니다. 브라우저에서 `http://localhost:8000`에 접속합니다.
 - `python3 -m json.tool animals.json >/dev/null`: 동물 데이터를 수정한 뒤 JSON 문법을 검사합니다.
-- `python3 tools/generate_edge_tts_audio.py --force`: Edge TTS 한국어 음성으로 동물 이름, 글자 타일용 음절, 칭찬 MP3를 다시 생성합니다.
+- `python3 tools/generate_edge_tts_audio.py --force`: Edge TTS 한국어 음성으로 동물 이름, 글자/자모 타일, 칭찬 MP3를 다시 생성합니다.
 - `git diff --check`: 커밋 전에 공백 오류를 확인합니다.
 
 이 앱은 `animals.json`을 `fetch()`로 읽으므로 `file://`로 열지 말고 HTTP 서버를 사용하세요.

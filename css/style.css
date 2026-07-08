@@ -258,6 +258,52 @@ img { -webkit-user-drag: none; }
 .blank.pop { animation: pop 0.4s ease; }
 .blank.wrong-flash { animation: wrong-flash 0.5s ease; }
 
+/* 초성모드: 초성은 고정하고, 중성/종성 조각만 끼워 넣는다 */
+.jamo-blanks {
+  width: min(100%, 50rem);
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  row-gap: clamp(0.7rem, 2.6vmin, 1.2rem);
+}
+
+.jamo-syllable {
+  display: grid;
+  grid-template-rows: var(--cell) calc(var(--cell) * 0.68);
+  justify-items: center;
+  align-items: center;
+  gap: clamp(0.15rem, 0.8vmin, 0.35rem);
+}
+
+.jamo-top {
+  display: grid;
+  grid-template-columns: var(--cell) var(--cell);
+  align-items: center;
+  justify-items: center;
+  gap: clamp(0.25rem, 1vmin, 0.45rem);
+}
+
+.jamo-initial {
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--cell) * 0.58);
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(91, 74, 67, 0.25);
+  box-shadow: var(--shadow);
+}
+
+.jamo-initial:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(91, 74, 67, 0.1); }
+
+.blank.jamo-final {
+  width: calc(var(--cell) * 0.78);
+  height: calc(var(--cell) * 0.62);
+  border-radius: calc(var(--radius) * 0.75);
+  font-size: calc(var(--cell) * 0.42);
+}
+
 /* 타일 트레이 */
 .tile-tray {
   width: min(100%, 46rem);

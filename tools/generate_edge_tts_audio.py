@@ -21,9 +21,65 @@ DEFAULT_VOICE = "ko-KR-SunHiNeural"
 DEFAULT_WORD_RATE = "-8%"
 DEFAULT_PRAISE_RATE = "+0%"
 DEFAULT_SYLLABLE_RATE = "-12%"
+DEFAULT_JAMO_RATE = "-12%"
 DEFAULT_PITCH = "+0Hz"
 DEFAULT_VOLUME = "+0%"
 FALLBACK_SYLLABLES = ["나", "너", "무", "비", "소", "수", "아", "우", "자", "추", "파", "하", "미", "도", "레", "바"]
+CONSONANT_SOUNDS = {
+    "ㄱ": "기역",
+    "ㄲ": "쌍기역",
+    "ㄴ": "니은",
+    "ㄷ": "디귿",
+    "ㄸ": "쌍디귿",
+    "ㄹ": "리을",
+    "ㅁ": "미음",
+    "ㅂ": "비읍",
+    "ㅃ": "쌍비읍",
+    "ㅅ": "시옷",
+    "ㅆ": "쌍시옷",
+    "ㅇ": "이응",
+    "ㅈ": "지읒",
+    "ㅉ": "쌍지읒",
+    "ㅊ": "치읓",
+    "ㅋ": "키읔",
+    "ㅌ": "티읕",
+    "ㅍ": "피읖",
+    "ㅎ": "히읗",
+    "ㄳ": "기역 시옷",
+    "ㄵ": "니은 지읒",
+    "ㄶ": "니은 히읗",
+    "ㄺ": "리을 기역",
+    "ㄻ": "리을 미음",
+    "ㄼ": "리을 비읍",
+    "ㄽ": "리을 시옷",
+    "ㄾ": "리을 티읕",
+    "ㄿ": "리을 피읖",
+    "ㅀ": "리을 히읗",
+    "ㅄ": "비읍 시옷",
+}
+VOWEL_SOUNDS = {
+    "ㅏ": "아",
+    "ㅐ": "애",
+    "ㅑ": "야",
+    "ㅒ": "얘",
+    "ㅓ": "어",
+    "ㅔ": "에",
+    "ㅕ": "여",
+    "ㅖ": "예",
+    "ㅗ": "오",
+    "ㅘ": "와",
+    "ㅙ": "왜",
+    "ㅚ": "외",
+    "ㅛ": "요",
+    "ㅜ": "우",
+    "ㅝ": "워",
+    "ㅞ": "웨",
+    "ㅟ": "위",
+    "ㅠ": "유",
+    "ㅡ": "으",
+    "ㅢ": "의",
+    "ㅣ": "이",
+}
 
 
 def stem_of_image(image_path: str) -> str:
@@ -35,8 +91,23 @@ def load_animals(limit: int | None) -> list[dict[str, str]]:
     return animals[:limit] if limit is not None else animals
 
 
+def load_audio_map() -> dict[str, str]:
+    map_path = ROOT / "audio" / "audio-map.json"
+    if not map_path.exists():
+        return {}
+    return json.loads(map_path.read_text(encoding="utf-8"))
+
+
 def syllable_path(syllable: str) -> str:
     return f"audio/syllables/{ord(syllable):04x}.mp3"
+
+
+def text_path_part(text: str) -> str:
+    return "_".join(f"{ord(ch):04x}" for ch in text)
+
+
+def jamo_path(speech_text: str) -> str:
+    return f"audio/jamo/{text_path_part(speech_text)}.mp3"
 
 
 def build_syllable_items(animals: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -53,11 +124,28 @@ def build_syllable_items(animals: list[dict[str, str]]) -> list[dict[str, str]]:
     ]
 
 
+def build_jamo_items() -> list[dict[str, str]]:
+    existing_map = load_audio_map()
+    speech_texts = sorted(set(CONSONANT_SOUNDS.values()) | set(VOWEL_SOUNDS.values()))
+    items = []
+    for speech_text in speech_texts:
+        existing_path = existing_map.get(speech_text)
+        if existing_path and not existing_path.startswith("audio/jamo/") and (ROOT / existing_path).exists():
+            continue
+        items.append({
+            "text": speech_text,
+            "path": jamo_path(speech_text),
+            "rate": DEFAULT_JAMO_RATE,
+        })
+    return items
+
+
 def build_items(
     animals: list[dict[str, str]],
     include_words: bool,
     include_praise: bool,
     include_syllables: bool,
+    include_jamo: bool,
 ) -> list[dict[str, str]]:
     items: list[dict[str, str]] = []
     for animal in animals:
@@ -76,6 +164,8 @@ def build_items(
             })
     if include_syllables:
         items.extend(build_syllable_items(animals))
+    if include_jamo:
+        items.extend(build_jamo_items())
     return items
 
 
@@ -131,9 +221,10 @@ async def generate(args: argparse.Namespace) -> None:
     animals = load_animals(args.limit)
     items = build_items(
         animals,
-        include_words=not args.only_syllables,
-        include_praise=not args.no_praise and not args.only_syllables,
-        include_syllables=not args.no_syllables,
+        include_words=not args.only_syllables and not args.only_jamo,
+        include_praise=not args.no_praise and not args.only_syllables and not args.only_jamo,
+        include_syllables=not args.no_syllables and not args.only_jamo,
+        include_jamo=args.only_jamo or (not args.no_jamo and not args.only_syllables),
     )
     semaphore = asyncio.Semaphore(args.concurrency)
     tasks = [
@@ -148,7 +239,7 @@ async def generate(args: argparse.Namespace) -> None:
         for item in items
     ]
     results = await asyncio.gather(*tasks)
-    write_audio_map(items, preserve_existing=args.only_syllables)
+    write_audio_map(items, preserve_existing=args.only_syllables or args.only_jamo)
     print(f"generated {sum(results)} files, mapped {len(items)} texts")
 
 
@@ -157,7 +248,9 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="앞에서부터 일부 동물만 생성")
     parser.add_argument("--no-praise", action="store_true", help="동물명만 생성")
     parser.add_argument("--no-syllables", action="store_true", help="글자 타일용 음절 MP3는 생성하지 않음")
+    parser.add_argument("--no-jamo", action="store_true", help="자모 조각용 발음 MP3는 생성하지 않음")
     parser.add_argument("--only-syllables", action="store_true", help="글자 타일용 음절 MP3만 생성")
+    parser.add_argument("--only-jamo", action="store_true", help="자모 조각용 발음 MP3만 생성")
     parser.add_argument("--force", action="store_true", help="이미 있는 MP3도 다시 생성")
     parser.add_argument("--voice", default=DEFAULT_VOICE, help="Edge TTS voice short name")
     parser.add_argument("--pitch", default=DEFAULT_PITCH, help="예: +0Hz, +20Hz, -10Hz")
