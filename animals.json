@@ -284,8 +284,16 @@
     "image": "images/frog.png"
   },
   {
+    "name": "독화살개구리",
+    "image": "images/poison-dart-frog.png"
+  },
+  {
     "name": "두꺼비",
     "image": "images/toad.png"
+  },
+  {
+    "name": "우파루파",
+    "image": "images/axolotl.png"
   },
   {
     "name": "악어",
@@ -320,12 +328,20 @@
     "image": "images/dolphin.png"
   },
   {
+    "name": "보토",
+    "image": "images/boto.png"
+  },
+  {
     "name": "물개",
     "image": "images/seal.png"
   },
   {
     "name": "상어",
     "image": "images/shark.png"
+  },
+  {
+    "name": "고래상어",
+    "image": "images/whale-shark.png"
   },
   {
     "name": "문어",
@@ -344,12 +360,20 @@
     "image": "images/shrimp.png"
   },
   {
+    "name": "맨티스쉬림프",
+    "image": "images/mantis-shrimp.png"
+  },
+  {
     "name": "바닷가재",
     "image": "images/lobster.png"
   },
   {
     "name": "물고기",
     "image": "images/fish.png"
+  },
+  {
+    "name": "개복치",
+    "image": "images/ocean-sunfish.png"
   },
   {
     "name": "복어",
